@@ -17,7 +17,7 @@ interface VendorDetailsProps {
 
 export const VendorDetails: React.FC<VendorDetailsProps> = ({ vendor, onClose }) => {
 
-  
+  console.log(vendor)
   return (
     <Container className="mt-5">
       <Card>
