@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { api } from '../Auth/apiService'; // Use your centralized API service
+import { api } from '../Auth/apiService';
 import {
   Button,
   Form,
@@ -19,24 +19,26 @@ import {
 export const VendorsForm: React.FC = () => {
   // Vendor and product details state
   const [vendorName, setVendorName] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');  // New phone number field
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [shopName, setShopName] = useState('');
   const [purpose, setPurpose] = useState('');
   const [shopAddress, setShopAddress] = useState('');
   const [billingAddress, setBillingAddress] = useState('');
-  const [selectedProducts, setSelectedProducts] = useState<any[]>([]); // Selected products
+  const [selectedProducts, setSelectedProducts] = useState<any[]>([]);
   const [totalPrice, setTotalPrice] = useState(0);
-  const [productsList, setProductsList] = useState<any[]>([]); // Fetched products list
-  const [loading, setLoading] = useState(true); // Loading state
-  const [error, setError] = useState(''); // Error state
+  const [productsList, setProductsList] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Fetch products from backend API
   useEffect(() => {
     const fetchProducts = async () => {
+      setLoading(true);
       try {
-        const response = await api.products.all(); // Fetch products using API service
-        setProductsList(response.data);
+        const response = await api.products.all();
+        setProductsList(response.data || []);
       } catch (err) {
+        console.error("Error fetching products:", err);
         setError('Error fetching products.');
       } finally {
         setLoading(false);
@@ -49,22 +51,25 @@ export const VendorsForm: React.FC = () => {
   // Handle product selection and quantity update
   const handleProductChange = (index: number, field: string, value: any) => {
     const updatedProducts = [...selectedProducts];
-
     if (field === 'productId') {
       const selectedProduct = productsList.find(
         (product) => product.id === parseInt(value)
       );
       if (selectedProduct) {
-        updatedProducts[index].productId = selectedProduct.id;
-        updatedProducts[index].name = selectedProduct.name;
-        updatedProducts[index].price = selectedProduct.price;
+        updatedProducts[index] = {
+          ...updatedProducts[index],
+          productId: selectedProduct.id,
+          name: selectedProduct.name,
+          price: selectedProduct.price,
+          quantity: updatedProducts[index].quantity || 1,
+          total: selectedProduct.price * (updatedProducts[index].quantity || 1),
+        };
       }
     } else {
       updatedProducts[index][field] = value;
+      updatedProducts[index].total = updatedProducts[index].price * (updatedProducts[index].quantity || 1);
     }
 
-    updatedProducts[index].total =
-      (updatedProducts[index].price || 0) * (updatedProducts[index].quantity || 1);
     setSelectedProducts(updatedProducts);
     calculateTotalPrice(updatedProducts);
   };
@@ -93,10 +98,11 @@ export const VendorsForm: React.FC = () => {
   // Handle form submission and send data to backend
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null); // Clear previous errors
 
     const formData = {
       vendorName,
-      phone_number: phoneNumber, // Include phone number in the form data
+      phone_number: phoneNumber,
       shopName,
       purpose,
       shopAddress,
@@ -106,10 +112,11 @@ export const VendorsForm: React.FC = () => {
     };
 
     try {
-      await api.invoices.create(formData); // Submit invoice data using API service
+      await api.invoices.create(formData);
       alert('Invoice submitted successfully!');
-      resetForm(); // Reset form after successful submission
+      resetForm();
     } catch (err) {
+      console.error("Error submitting invoice:", err);
       setError('Error submitting invoice. Please try again.');
     }
   };
@@ -117,7 +124,7 @@ export const VendorsForm: React.FC = () => {
   // Reset form fields after submission
   const resetForm = () => {
     setVendorName('');
-    setPhoneNumber('');  // Reset phone number
+    setPhoneNumber('');
     setShopName('');
     setPurpose('');
     setShopAddress('');
@@ -126,23 +133,19 @@ export const VendorsForm: React.FC = () => {
     setTotalPrice(0);
   };
 
-  // Render loading state if still fetching products
   if (loading) {
     return <Spinner color="primary" />;
   }
 
-  // Render form
   return (
     <Container className="mt-5">
       <Card>
         <CardBody>
           <CardTitle tag="h2" className="text-center mb-4">Vendor Form</CardTitle>
 
-          {/* Error alert */}
           {error && <Alert color="danger">{error}</Alert>}
 
           <Form onSubmit={handleSubmit}>
-            {/* Vendor Details */}
             <Row>
               <Col md="6">
                 <FormGroup>
@@ -157,14 +160,14 @@ export const VendorsForm: React.FC = () => {
               </Col>
               <Col md="6">
                 <FormGroup>
-                <Label>Phone Number</Label>
+                  <Label>Phone Number</Label>
                   <Input
-                      type="tel"
-                      value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
-                      required
-                      pattern="[0-9]{10}"  // Simple validation for a 10-digit phone number
-                      placeholder="Enter 10-digit phone number"
+                    type="tel"
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                    required
+                    pattern="[0-9]{10}"
+                    placeholder="Enter 10-digit phone number"
                   />
                 </FormGroup>
               </Col>
@@ -215,7 +218,6 @@ export const VendorsForm: React.FC = () => {
               />
             </FormGroup>
 
-            {/* Product Selection */}
             <h3>Select Products</h3>
             {selectedProducts.map((product, index) => (
               <Row key={index} className="mb-3">
@@ -250,10 +252,7 @@ export const VendorsForm: React.FC = () => {
                 </Col>
 
                 <Col md="2">
-                  <Button
-                    color="danger"
-                    onClick={() => removeProductRow(index)}
-                  >
+                  <Button color="danger" onClick={() => removeProductRow(index)}>
                     Remove
                   </Button>
                 </Col>
@@ -268,7 +267,6 @@ export const VendorsForm: React.FC = () => {
               Add Product
             </Button>
 
-            {/* Total Price Calculation */}
             <div className="total-price-section">
               <h4>Total Price: ₹{totalPrice}</h4>
             </div>

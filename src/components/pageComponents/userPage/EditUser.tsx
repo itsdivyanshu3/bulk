@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Button, Input, Alert } from 'reactstrap';
 import { api } from '../../Auth/apiService';
- // Use your centralized API service
 
 export const EditUser: React.FC<{ user: any }> = ({ user }) => {
     const [userType, setUserType] = useState<string>(user.user_type);
@@ -18,10 +17,16 @@ export const EditUser: React.FC<{ user: any }> = ({ user }) => {
             setMessage('User role updated successfully!');
             setError(''); // Clear error message
             setTimeout(() => setMessage(''), 3000); // Hide success message after 3 seconds
-        } catch (err) {
+        } catch (err: any) {
             setMessage(''); // Clear success message
-            setError('Error updating user role. Please try again.');
+            setError(err.response?.data?.message || 'Error updating user role. Please try again.');
         }
+    };
+
+    // Reset error message on role change
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setUserType(e.target.value);
+        setError(''); // Clear error when a new role is selected
     };
 
     return (
@@ -30,7 +35,7 @@ export const EditUser: React.FC<{ user: any }> = ({ user }) => {
             <Input
                 type="select"
                 value={userType}
-                onChange={(e) => setUserType(e.target.value)}
+                onChange={handleChange}
                 className="mr-2"
             >
                 <option value="customer">Customer</option>
