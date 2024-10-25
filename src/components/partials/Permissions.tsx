@@ -8,6 +8,7 @@ interface PermissionsProps {
 
 export const Permissions: React.FC<PermissionsProps> = ({ roles, children }) => {
     const userRole = localStorage.getItem('userRole');  // Fetch the role from localStorage
+
     // If user's role is in the allowed roles array, render the content
     if (roles.includes(userRole || '')) {
       return <>{children}</>;

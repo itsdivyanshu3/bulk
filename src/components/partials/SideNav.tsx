@@ -15,7 +15,7 @@ export const SideNav: React.FC = () => {
   return (
     <div className="sidebar-container">
       <nav className="sidebar">
-        <h2 className="sidebar-title">Source of Korea</h2>
+        <h2 className="sidebar-title">Source Korea</h2>
         <ul>
           <li>
             <Link to="/">Dashboard</Link>
