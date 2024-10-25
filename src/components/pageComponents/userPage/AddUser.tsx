@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Button, Form, FormGroup, Label, Input, Spinner, Alert, Container } from 'reactstrap';
 import { api } from '../../Auth/apiService';
-// Using the centralized API service
 
 export const AddUser: React.FC = () => {
   const [name, setName] = useState<string>('');
@@ -9,31 +8,33 @@ export const AddUser: React.FC = () => {
   const [password, setPassword] = useState<string>('');
   const [userType, setUserType] = useState<string>('customer');
   const [message, setMessage] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(false); // To handle loading state
-  const [error, setError] = useState<string | null>(null); // To handle form validation errors
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Function to handle form submission
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setError(null); // Reset error message
-    setMessage(''); // Reset success message
+    setError(null); 
+    setMessage('');
 
-    const formData = {
-      name,
-      email,
-      password,
-      user_type: userType,
-    };
+    const formData = { name, email, password, user_type: userType };
+
+    // Simple client-side validation
+    if (!name || !email || !password) {
+      setError('All fields are required');
+      setLoading(false);
+      return;
+    }
 
     try {
-      await api.users.createUser(formData); // Call the API service to create a new user
+      await api.users.createUser(formData);
       setMessage('User created successfully!');
-      resetForm(); // Reset the form fields
+      resetForm(); 
     } catch (err: any) {
-      setError(err?.response?.data?.message || 'Error creating user. Please try again.'); // Handle error with details
+      setError(err?.response?.data?.message || 'Error creating user. Please try again.');
     } finally {
-      setLoading(false); // Stop the loader
+      setLoading(false); 
     }
   };
 

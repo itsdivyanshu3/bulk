@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { EditUser } from '../pageComponents/userPage/EditUser';
 import { AddUser } from '../pageComponents/userPage/AddUser';
-import { api } from '../Auth/apiService'; // Using your centralized API service
+import { api } from '../Auth/apiService';
 import {
   Button,
   Modal,
@@ -23,7 +23,7 @@ export const User: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Fetch users from the API using apiService
+  // Fetch users from the API
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -62,20 +62,22 @@ export const User: React.FC = () => {
       {error && <Alert color="danger">{error}</Alert>}
 
       {/* User List */}
-      <ListGroup className="user-list">
-        {users.length > 0 ? (
-          users.map((user) => (
-            <ListGroupItem key={user.id} className="d-flex justify-content-between align-items-center">
-              <div>
-                <strong>{user.name}</strong> ({user.email}) - {user.user_type}
-              </div>
-              <EditUser user={user} />
-            </ListGroupItem>
-          ))
-        ) : (
-          !loading && <Alert color="info">No users available.</Alert> // Show if no users are found
-        )}
-      </ListGroup>
+      {!loading && !error && (
+        <ListGroup className="user-list">
+          {users.length > 0 ? (
+            users.map((user) => (
+              <ListGroupItem key={user.id} className="d-flex justify-content-between align-items-center">
+                <div>
+                  <strong>{user.name}</strong> ({user.email}) - {user.user_type}
+                </div>
+                <EditUser user={user} />
+              </ListGroupItem>
+            ))
+          ) : (
+            <Alert color="info">No users available.</Alert>
+          )}
+        </ListGroup>
+      )}
 
       {/* Modal for adding a user */}
       <Modal isOpen={isModalOpen} toggle={toggleModal} className="half-screen-modal">
