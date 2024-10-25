@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { EditUser } from '../pageComponents/userPage/EditUser';
 import { AddUser } from '../pageComponents/userPage/AddUser';
+import { api } from '../Auth/apiService'; // Using your centralized API service
 import {
   Button,
   Modal,
@@ -19,20 +19,15 @@ import {
 
 export const User: React.FC = () => {
   const [users, setUsers] = useState<any[]>([]);
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(true); // Loading state
-  const [isModalOpen, setIsModalOpen] = useState(false); // State to control modal
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Fetch users from the API using apiService
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const token = localStorage.getItem('authToken');
-        const response = await axios.get('http://127.0.0.1:8000/api/users', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
+        const response = await api.users.index(); // Fetch users using the API service
         setUsers(response.data);
       } catch (err) {
         setError('Error fetching users.');
@@ -62,18 +57,24 @@ export const User: React.FC = () => {
         </Col>
       </Row>
 
-      {loading && <Spinner color="primary" />} {/* Loading spinner */}
+      {/* Loading and error handling */}
+      {loading && <Spinner color="primary" />}
       {error && <Alert color="danger">{error}</Alert>}
 
+      {/* User List */}
       <ListGroup className="user-list">
-        {users.map((user) => (
-          <ListGroupItem key={user.id} className="d-flex justify-content-between align-items-center">
-            <div>
-              <strong>{user.name}</strong> ({user.email}) - {user.user_type}
-            </div>
-            <EditUser user={user} />
-          </ListGroupItem>
-        ))}
+        {users.length > 0 ? (
+          users.map((user) => (
+            <ListGroupItem key={user.id} className="d-flex justify-content-between align-items-center">
+              <div>
+                <strong>{user.name}</strong> ({user.email}) - {user.user_type}
+              </div>
+              <EditUser user={user} />
+            </ListGroupItem>
+          ))
+        ) : (
+          !loading && <Alert color="info">No users available.</Alert> // Show if no users are found
+        )}
       </ListGroup>
 
       {/* Modal for adding a user */}

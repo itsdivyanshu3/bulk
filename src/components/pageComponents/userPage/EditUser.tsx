@@ -1,38 +1,32 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { Button, Input, Alert } from 'reactstrap';
+import { api } from '../../Auth/apiService';
+ // Use your centralized API service
 
 export const EditUser: React.FC<{ user: any }> = ({ user }) => {
     const [userType, setUserType] = useState<string>(user.user_type);
-    const [message, setMessage] = useState<string>('');
-    const [error, setError] = useState<string>(''); // For handling error messages
+    const [message, setMessage] = useState<string>(''); // Success message
+    const [error, setError] = useState<string>(''); // Error message
 
+    // Function to handle role update
     const handleUpdateRole = async () => {
         try {
-            const token = localStorage.getItem('authToken');
-            await axios.put(
-                `http://127.0.0.1:8000/api/users/${user.id}/role`,
-                {
-                    user_type: userType,
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
+            // Call API to update the user role
+            await api.users.updateUserRole(user.id, { user_type: userType });
 
+            // Display success message and hide after 3 seconds
             setMessage('User role updated successfully!');
-            setError(''); // Clear error if update is successful
-            setTimeout(() => setMessage(''), 3000); // Hide message after 3 seconds
-        } catch (error) {
+            setError(''); // Clear error message
+            setTimeout(() => setMessage(''), 3000); // Hide success message after 3 seconds
+        } catch (err) {
             setMessage(''); // Clear success message
             setError('Error updating user role. Please try again.');
         }
     };
 
     return (
-        <div className="">
+        <div>
+            {/* User role selection */}
             <Input
                 type="select"
                 value={userType}
@@ -43,13 +37,15 @@ export const EditUser: React.FC<{ user: any }> = ({ user }) => {
                 <option value="vendor">Vendor</option>
                 <option value="admin">Admin</option>
             </Input>
-            <Button color="primary btn-sm mt-2 " onClick={handleUpdateRole}>
+
+            {/* Button to trigger role update */}
+            <Button color="primary btn-sm mt-2" onClick={handleUpdateRole}>
                 Update Role
             </Button>
 
             {/* Display success or error message */}
-            {message && <Alert color="success" className="ml-2">{message}</Alert>}
-            {error && <Alert color="danger" className="ml-2">{error}</Alert>}
+            {message && <Alert color="success" className="mt-2">{message}</Alert>}
+            {error && <Alert color="danger" className="mt-2">{error}</Alert>}
         </div>
     );
 };

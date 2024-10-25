@@ -1,36 +1,38 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { api } from '../../Auth/apiService';
 
 
 export const Login: React.FC = () => {
-  const [email, setEmail] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
-  const [message, setMessage] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(false);  // Loading state
-  const navigate = useNavigate();
+  const [email, setEmail] = useState<string>(''); // Email input state
+  const [password, setPassword] = useState<string>(''); // Password input state
+  const [message, setMessage] = useState<string>(''); // Success/error message state
+  const [loading, setLoading] = useState<boolean>(false); // Loading state
+  const navigate = useNavigate(); // Navigation after login
 
+  // Handle login form submission
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);  // Start loading spinner
+    setLoading(true); // Start loading spinner
+    setMessage(''); // Clear previous messages
 
     try {
-      const response = await axios.post('http://127.0.0.1:8000/api/login', {
+      // Call the API service for login
+      const response = await api.auth.login({
         email,
         password,
       });
 
       const { token, user } = response.data;
-      console.log('Login response:', response);  // Verify login response
-
       // Store the token and user role (user_type) in localStorage
       localStorage.setItem('authToken', token);
-      localStorage.setItem('userRole', user.user_type);  // Store user role
+      localStorage.setItem('userRole', user.user_type);
 
-      setLoading(false);  // Stop loading spinner
-      navigate('/');  // Redirect after successful login
+      setLoading(false); // Stop loading spinner
+      navigate('/'); // Redirect after successful login
     } catch (error: any) {
-      setLoading(false);  // Stop loading spinner in case of error
+      setLoading(false); // Stop loading spinner in case of error
+      // Handle errors based on response status
       if (error.response && error.response.status === 401) {
         setMessage('Invalid login credentials. Please try again.');
       } else {
@@ -63,8 +65,10 @@ export const Login: React.FC = () => {
           </button>
         </form>
 
-        {loading && <div className="spinner"></div>}  {/* Show spinner while loading */}
+        {/* Display loading spinner if login is in progress */}
+        {loading && <div className="spinner"></div>}
 
+        {/* Display success or error message */}
         {message && <p className="error-message">{message}</p>}
 
         <p>New user? <Link to="/register" className="register-link">Register here</Link></p>

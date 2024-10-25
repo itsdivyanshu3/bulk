@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { Button, Form, FormGroup, Label, Input, Spinner, Alert, Container } from 'reactstrap';
+import { api } from '../../Auth/apiService';
+// Using the centralized API service
 
 export const AddUser: React.FC = () => {
   const [name, setName] = useState<string>('');
@@ -11,38 +12,37 @@ export const AddUser: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false); // To handle loading state
   const [error, setError] = useState<string | null>(null); // To handle form validation errors
 
+  // Function to handle form submission
   const handleCreateUser = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true); // Start the loader when submitting
+    setLoading(true);
     setError(null); // Reset error message
+    setMessage(''); // Reset success message
+
+    const formData = {
+      name,
+      email,
+      password,
+      user_type: userType,
+    };
 
     try {
-      const token = localStorage.getItem('authToken');
-      const response = await axios.post(
-        'http://127.0.0.1:8000/api/users',
-        {
-          name,
-          email,
-          password,
-          user_type: userType,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
+      await api.users.createUser(formData); // Call the API service to create a new user
       setMessage('User created successfully!');
+      resetForm(); // Reset the form fields
+    } catch (err: any) {
+      setError(err?.response?.data?.message || 'Error creating user. Please try again.'); // Handle error with details
+    } finally {
       setLoading(false); // Stop the loader
-      setName(''); // Reset form fields
-      setEmail('');
-      setPassword('');
-      setUserType('customer');
-    } catch (error: any) {
-      setLoading(false); // Stop the loader
-      setError('Error creating user. Please try again.');
     }
+  };
+
+  // Function to reset form fields after successful submission
+  const resetForm = () => {
+    setName('');
+    setEmail('');
+    setPassword('');
+    setUserType('customer');
   };
 
   return (
