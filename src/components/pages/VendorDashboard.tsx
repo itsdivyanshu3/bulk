@@ -64,13 +64,7 @@ export const VendorDashboard: React.FC = () => {
 
   // Function to clear success and error messages after 3 seconds
   const clearMessages = () => {
-    if (successMessage || error) {
-      const timeout = setTimeout(() => {
-        setSuccessMessage(null);
-        setError(null);
-      }, 3000);
-      return () => clearTimeout(timeout); // Cleanup the timeout
-    }
+ 
   };
 
   // Call the clearMessages function whenever successMessage or error changes
